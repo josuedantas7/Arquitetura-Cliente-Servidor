@@ -90,71 +90,39 @@ class FileClient:
 
     def upload_file(self):
         file_path = filedialog.askopenfilename()  # Abre o diálogo para selecionar um arquivo
-        if file_path:
-            file_name = os.path.basename(file_path)  # Obtém o nome do arquivo
-            with open(file_path, 'rb') as file:
-                file_data = file.read()  # Lê o conteúdo do arquivo
-            try:
-                self.conn.root.upload_file(file_name, file_data)  # Envia o arquivo para o servidor
-                messagebox.showinfo("Sucesso", "Arquivo enviado com sucesso!")  # Exibe mensagem de sucesso
-            except Exception as e:
-                messagebox.showerror("Erro", f"Não foi possível fazer o upload: {e}")  # Exibe mensagem de erro
+        file_name = os.path.basename(file_path)  # Obtém o nome do arquivo
+        with open(file_path, 'rb') as file:
+            file_data = file.read()  # Lê o conteúdo do arquivo
+            self.conn.root.upload_file(file_name, file_data)  # Envia o arquivo para o servidor
+            messagebox.showinfo("Sucesso", "Arquivo enviado com sucesso!")  # Exibe mensagem de sucesso
 
     def list_files(self):
-        try:
-            files = self.conn.root.list_files()  # Solicita a lista de arquivos ao servidor
-            self.file_listbox.delete(0, END)  # Limpa a lista de arquivos existente
-            for file_name, file_size in files:
-                self.file_listbox.insert(END, f"{file_name}: {file_size} bytes")  # Adiciona os arquivos à lista
-        except Exception as e:
-            messagebox.showerror("Erro", f"Não foi possível listar os arquivos: {e}")  # Exibe mensagem de erro
+        files = self.conn.root.list_files()  # Solicita a lista de arquivos ao servidor
+        self.file_listbox.delete(0, END)  # Limpa a lista de arquivos existente
+        for file_name, file_size in files:
+            self.file_listbox.insert(END, f"{file_name}: {file_size} bytes")  # Adiciona os arquivos à lista
 
     def download_file(self):
         file_name = self.download_name_entry.get()  # Obtém o nome do arquivo a ser baixado
-        if not file_name:
-            messagebox.showwarning("Aviso", "Por favor, insira o nome do arquivo.")  # Exibe aviso se o nome do arquivo estiver vazio
-            return
 
-        if not self.download_folder:
-            messagebox.showwarning("Aviso", "Por favor, selecione a pasta para salvar o arquivo.")  # Exibe aviso se a pasta não estiver selecionada
-            return
-
-        try:
-            file_data = self.conn.root.download_file(file_name)  # Solicita o download do arquivo ao servidor
-            if file_data:
-                file_path = os.path.join(self.download_folder, file_name)
-                with open(file_path, 'wb') as file:
-                    file.write(file_data)  # Salva o arquivo na pasta selecionada
-                messagebox.showinfo("Sucesso", "Arquivo baixado com sucesso!")  # Exibe mensagem de sucesso
-            else:
-                messagebox.showerror("Erro", f"Arquivo '{file_name}' não encontrado no servidor.")  # Exibe mensagem de erro se o arquivo não for encontrado
-        except Exception as e:
-            messagebox.showerror("Erro", f"Não foi possível fazer o download: {e}")  # Exibe mensagem de erro
+        file_data = self.conn.root.download_file(file_name)  # Solicita o download do arquivo ao servidor
+        file_path = os.path.join(self.download_folder, file_name)
+        with open(file_path, 'wb') as file:
+            file.write(file_data)  # Salva o arquivo na pasta selecionada
+        messagebox.showinfo("Sucesso", "Arquivo baixado com sucesso!")  # Exibe mensagem de sucesso
 
     def register_interest(self):
         file_name = self.file_name_entry.get()  # Obtém o nome do arquivo para registrar interesse
-        try:
-            duration = float(self.duration_entry.get())  # Obtém e valida a duração
-            if duration <= 0:
-                raise ValueError("A duração deve ser um número positivo.")
-        except ValueError as e:
-            messagebox.showerror("Erro", f"Entrada inválida: {e}")  # Exibe mensagem de erro se a duração for inválida
-            return
+        duration = float(self.duration_entry.get())  # Obtém e valida a duração
 
-        try:
-            client_service = FileClientService(self)  # Cria uma instância do serviço de cliente para notificação
-            self.conn.root.register_interest(file_name, client_service, duration)  # Registra o interesse no servidor
-            messagebox.showinfo("Sucesso", "Interesse registrado com sucesso!")  # Exibe mensagem de sucesso
-        except Exception as e:
-            messagebox.showerror("Erro", f"Não foi possível registrar o interesse: {e}")  # Exibe mensagem de erro
+        client_service = FileClientService(self)  # Cria uma instância do serviço de cliente para notificação
+        self.conn.root.register_interest(file_name, client_service, duration)  # Registra o interesse no servidor
+        messagebox.showinfo("Sucesso", "Interesse registrado com sucesso!")  # Exibe mensagem de sucesso
 
     def cancel_interest(self):
         file_name = self.file_name_entry.get()  # Obtém o nome do arquivo para cancelar o interesse
-        try:
-            self.conn.root.cancel_interest(file_name)  # Solicita o cancelamento do interesse ao servidor
-            messagebox.showinfo("Sucesso", "Interesse cancelado com sucesso!")  # Exibe mensagem de sucesso
-        except Exception as e:
-            messagebox.showerror("Erro", f"Não foi possível cancelar o interesse: {e}")  # Exibe mensagem de erro
+        self.conn.root.cancel_interest(file_name)  # Solicita o cancelamento do interesse ao servidor
+        messagebox.showinfo("Sucesso", "Interesse cancelado com sucesso!")  # Exibe mensagem de sucesso
 
     def notify_event(self, file_name):
         messagebox.showinfo("Notificação", f"O arquivo '{file_name}' está disponível.")  # Notifica o cliente sobre a disponibilidade do arquivo
